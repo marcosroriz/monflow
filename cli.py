@@ -30,6 +30,5 @@ def main(cfg, names, weights, source, output, img_size, conf_thres, iou_thres,
     print(out)
 
 
-
 if __name__ == "__main__":
     main()

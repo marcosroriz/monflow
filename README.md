@@ -35,12 +35,6 @@ $ !python3 train.py --data data/coco_1cls.data --cfg cfg/yolov3-spp.cfg --weight
 $ !python3 train.py --data data/coco_1cls.data --cfg cfg/yolov3-spp.cfg --weights weights/last.pt --epochs 500
 ```
 
-
-**Plot Training:** `from utils import utils; utils.plot_results()`
-
-<img src="https://user-images.githubusercontent.com/26833433/78175826-599d4800-7410-11ea-87d4-f629071838f6.png" width="900">
-
-
 ## Inference
 
 ```bash
