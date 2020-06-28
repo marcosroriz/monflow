@@ -70,7 +70,7 @@ class Detector:
         img = np.ascontiguousarray(img)
 
         # Save Resize
-        cv2.imwrite(imgpath + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
+        # cv2.imwrite(imgpath + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
         return rawimg, img
 
     def preprocess_img(self, img):
@@ -82,6 +82,38 @@ class Detector:
 
         return img
 
+    def predict_img(self, img):
+        # Predict
+        time_start = torch_utils.time_synchronized()
+        pred = self.model(img)[0]
+        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, multi_label=False)
+        time_end = torch_utils.time_synchronized()
+
+        diff_time = "{:.2f}".format(time_end - time_start)
+        self.logger.info("Time required for detection (s): " + str(diff_time))
+
+        return pred
+
+    def benchmark(self, imgpath):
+        # Load and Preprocess IMG
+        rawimg, img = self.load_img(imgpath)
+        img = self.preprocess_img(img)
+
+        # Predict
+        pred = self.predict_img(img)
+
+        # Process Predictions
+        output = defaultdict(int)
+        det = pred[0]
+
+        if det is not None and len(det):
+            # Print results
+            for c in det[:, -1].unique():
+                n = (det[:, -1] == c).sum()  # detections per class
+                output[int(c.item())] = n.item()
+
+        return output
+
     def detect(self, imgpath):
         self.logger.info("Running detection on the following image: " + imgpath)
 
@@ -90,8 +122,7 @@ class Detector:
         img = self.preprocess_img(img)
 
         # Predict
-        pred = self.model(img)[0]
-        pred = non_max_suppression(pred, self.conf_thres, self.iou_thres, multi_label=False)
+        pred = self.predict_img(img)
 
         # Process Predictions
         output = defaultdict(list)
@@ -115,12 +146,17 @@ class Detector:
                 output[int(cls.item())].append([xyxy, conf])
                 if self.view_img:  # Add bbox to image
                     label = '%s %.2f' % (self.names[int(cls)], conf)
-                    plot_one_box(xyxy, rawimg, label=label, color=self.colors[int(cls)])
+                    c = self.colors[int(cls)]
+                    plot_one_box(xyxy, rawimg, label=label,
+                                 color=self.colors[int(cls)])
 
+            # Show output?
             if self.view_img:
                 cv2.imshow(imgpath, rawimg)
                 if cv2.waitKey(0) == ord('q'):  # q to quit
                     raise StopIteration
+
+                cv2.destroyAllWindows()
 
         return output
 

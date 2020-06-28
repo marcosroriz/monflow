@@ -3,7 +3,11 @@
 
 """MonFlow Command Line Interface"""
 import click
+import csv
+import glob
 import logging
+import os
+from collections import defaultdict
 
 # MonFlow Imports
 from detector import Detector
@@ -21,14 +25,56 @@ from detector import Detector
 @click.option('--device', default='', help='device id (i.e. 0 or 0,1) or cpu')
 @click.option('--view-img', is_flag=True, help='show classified image')
 @click.option('--save-txt', is_flag=True, help='save results to *.txt')
+@click.option('--benchmark', is_flag=True, help='benchmark')
 def main(cfg, names, weights, source, output, img_size, conf_thres, iou_thres, 
-         device, view_img, save_txt):
-    logging.basicConfig(level=logging.INFO)
+         device, view_img, save_txt, benchmark):
+    FORMAT = '[%(levelname)s] [%(name)s] %(funcName)s(): %(message)s'
+    logging.basicConfig(format=FORMAT, level=logging.INFO)
+    
+    logger = logging.getLogger("monflow.cli")
 
-    det = Detector(cfg, names, weights, img_size, device, view_img)
-    out = det.detect(source)
-    print(out)
+    # Are we going to process a file or a directory?
+    # Check if its a directory
+    if os.path.isdir(source):
+        files = glob.glob(os.path.join(source, '*.jpg'))
+    else: # is a single file
+        files = [source]
 
+    # Create Detector
+    det = Detector(cfg, names, weights, img_size, device, view_img, conf_thres, iou_thres)
+
+    # Process files
+    total = len(files)
+
+    # Benchmark output dictionary
+    benchdict = defaultdict(int)
+
+    for i in range(len(files)):
+        logger.info("Processing Image " + str(i + 1) + "/" + str(total))
+
+        if not benchmark:
+            out = det.detect(files[i])
+            logger.info("Pedestrians detected: " + str(len(out[0])))
+        else:
+            out = det.benchmark(files[i])
+            logger.info("Pedestrians detected: " + str(out[0]))
+
+            # Save to our benchmark dict
+            _, tail = os.path.split(files[i])
+            analyzedfile = tail.split("_")[0]
+
+            benchdict[analyzedfile] = benchdict[analyzedfile] + out[0] # Pedestrians
+
+    # Benchmark output
+    benchoutput = os.path.join(output, "benchmark-" + str(conf_thres) + "-" + str(iou_thres) + ".csv")
+    with open(benchoutput, 'w', newline='') as outputfile:
+        csvwriter = csv.writer(outputfile, delimiter=',')
+        csvwriter.writerow(["file","pedestrians"])
+
+        for key in benchdict:
+            csvwriter.writerow([key, benchdict[key]])
+
+        outputfile.flush()
 
 if __name__ == "__main__":
     main()
