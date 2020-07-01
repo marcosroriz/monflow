@@ -32,7 +32,7 @@ class ImageReply(ComplexModel):
     qtdCaminhao = Integer
     qtdOnibus = Integer
 
-
+'''
 class WSAPI(ServiceBase):
     @rpc(ImageRequest, _returns=ImageReply)
     def process_img(ctx, request):
@@ -49,6 +49,26 @@ class WSAPI(ServiceBase):
 
         return ImageReply(imgID=request.imgID, qtdPessoas=5, qtdVeiculos=3,
                           qtdCarro=2, qtdMoto=1, qtdCaminhao=0, qtdOnibus=0)
+'''
+
+class FileParse:
+  nameDirectories = []
+
+  def __init__(self):
+    self.nameDirectories = os.listdir("./images/")
+
+  def getJson(self, name, idimg="31930"):
+    print(name, self.nameDirectories)
+    matching = [st for st in self.nameDirectories if name in st]
+    jsoName = "./images/" + matching[0] + "/"  + matching[0] + '.' + idimg + ".json"
+    f = open(jsoName, "r")
+    jsonString = json.load(f)
+    return jsonString
+
+class WSAPI(ServiceBase):
+  __in_header__ = ImageRequest
+  @rpc(Unicode)
+  def process_img(ctx, request):
 
 
 application = Application([WSAPI],
