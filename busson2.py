@@ -64,22 +64,24 @@ tam_slice_height = 540
 #     ]
 
 # Bounding boxes (entrada)
-bb_slice0 = []  # Não detectou nada
-bb_slice1 = [{'id': 1, 'xmin': 371.0, 'ymin': 456.0, 'xmax': 431.0, 'ymax': 540.0, 'conf': 0.3491985499858856}]
-bb_slice2 = [{'id': 2, 'xmin': 888.0, 'ymin': 68.0, 'xmax': 952.0, 'ymax': 240.0, 'conf': 0.871227502822876},
-             {'id': 3, 'xmin': 922.0, 'ymin': 63.0, 'xmax': 960.0, 'ymax': 228.0, 'conf': 0.6695037484169006}]
-bb_slice3 = [{'id': 4, 'xmin': 1.0, 'ymin': 52.0, 'xmax': 79.0, 'ymax': 230.0, 'conf': 0.9308098554611206},
-             {'id': 5, 'xmin': 370.0, 'ymin': 3.0, 'xmax': 442.0, 'ymax': 130.0, 'conf': 0.9237046241760254},
-             {'id': 6, 'xmin': 163.0, 'ymin': 3.0, 'xmax': 243.0, 'ymax': 189.0, 'conf': 0.9022660851478577},
-             {'id': 7, 'xmin': 232.0, 'ymin': 0.0, 'xmax': 311.0, 'ymax': 209.0, 'conf': 0.8999184966087341},
-             {'id': 8, 'xmin': 88.0, 'ymin': 0.0, 'xmax': 169.0, 'ymax': 230.0, 'conf': 0.8105608224868774}]
+bb_slice0 = [{'id': 1, 'xmin': 585.0, 'ymin': 396.0, 'xmax': 636.0, 'ymax': 537.0, 'conf': 0.947035014629364},
+             {'id': 2, 'xmin': 577.0, 'ymin': 145.0, 'xmax': 610.0, 'ymax': 227.0, 'conf': 0.8426766991615295},
+             {'id': 3, 'xmin': 645.0, 'ymin': 122.0, 'xmax': 671.0, 'ymax': 204.0, 'conf': 0.7700527906417847},
+             {'id': 4, 'xmin': 669.0, 'ymin': 106.0, 'xmax': 693.0, 'ymax': 191.0, 'conf': 0.635362982749939},
+             {'id': 5, 'xmin': 552.0, 'ymin': 487.0, 'xmax': 596.0, 'ymax': 540.0, 'conf': 0.5964713096618652},
+             {'id': 6, 'xmin': 707.0, 'ymin': 518.0, 'xmax': 734.0, 'ymax': 539.0, 'conf': 0.3967316150665283}]
+bb_slice1 = [{'id': 7, 'xmin': 270.0, 'ymin': 160.0, 'xmax': 314.0, 'ymax': 247.0, 'conf': 0.5448222756385803},
+             {'id': 8, 'xmin': 250.0, 'ymin': 146.0, 'xmax': 288.0, 'ymax': 243.0, 'conf': 0.1877407431602478}]
+bb_slice2 = [{'id': 9, 'xmin': 647.0, 'ymin': 1.0, 'xmax': 761.0, 'ymax': 169.0, 'conf': 0.9406569600105286},
+             {'id': 10, 'xmin': 521.0, 'ymin': 1.0, 'xmax': 605.0, 'ymax': 106.0, 'conf': 0.9205801486968994}]
+bb_slice3 = []
 
 # Visualizando os slices
 # Img Slice
-img_slice0 = os.path.join('data', 'samples', 'test1', '31930_0.jpg')
-img_slice1 = os.path.join('data', 'samples', 'test1', '31930_1.jpg')
-img_slice2 = os.path.join('data', 'samples', 'test1', '31930_2.jpg')
-img_slice3 = os.path.join('data', 'samples', 'test1', '31930_3.jpg')
+img_slice0 = os.path.join('data', 'samples', 'test2', '31995_0.jpg')
+img_slice1 = os.path.join('data', 'samples', 'test2', '31995_1.jpg')
+img_slice2 = os.path.join('data', 'samples', 'test2', '31995_2.jpg')
+img_slice3 = os.path.join('data', 'samples', 'test2', '31995_3.jpg')
 
 imgs = [img_slice0, img_slice1, img_slice2, img_slice3]
 bbs = [bb_slice0, bb_slice1, bb_slice2, bb_slice3]
@@ -154,7 +156,7 @@ bb_img = fix_bounding_box(tam_total_width, tam_total_height, tam_slice_width, ta
                           bb_slice0, bb_slice1, bb_slice2, bb_slice3)
 
 # Imagem Total
-img_total = os.path.join('data', 'samples', 'test1', '31930.jpg')
+img_total = os.path.join('data', 'samples', 'test2', '31930.jpg')
 img = cv2.imread(img_total)  # BGR in HxWxC
 
 for bb in bb_img:
