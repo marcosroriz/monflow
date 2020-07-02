@@ -105,50 +105,13 @@ for i in range(len(imgs)):
 # uma única lista de bounding boxes, que leva em conta a dimensão da imagem como um todo
 # o valor de confiança será o maior dos dois boxes e o quadrante será o maior que junta os dois
 #
-# Neste caso deve-se fazer o merge do bb de id 1 do slice 1 com o bb de id 5 slice 3
+# Neste caso deve-se fazer o merge do bb de id 5 do slice 0 com o bb de id 10 slice 2
+# Também     deve-se fazer o merge do bb de id 6 do slice 0 com o bb de id 9 slice 2
 #
 
 def fix_bounding_box(tam_total_width, tam_total_height, tam_slice_width, tam_slice_height,
                      bb_slice0, bb_slice1, bb_slice2, bb_slice3):
     bb_img = []
-
-    # Img do quadrante 0
-    # Nenhuma
-
-    # Img do quadrante 1
-    # Neste caso deve-se fazer o merge do bb de id 1 do slice 1 com o bb de id 5 slice 3
-    # Também é importante corrigir a posição do xmin, ymin, etc para o quadrante da imagem
-    # A bb acontece no slice 1, que é no topo direito, então temos que somar o tam_slice_width no ref x
-    # Ex:
-    # {'id': 1, 'xmin': 371.0, 'ymin': 456.0, 'xmax': 431.0, 'ymax': 540.0, 'conf': 0.3491985499858856}
-    # {'id': 5, 'xmin': 370.0, 'ymin': 3.0, 'xmax': 442.0, 'ymax': 130.0, 'conf': 0.9237046241760254}
-    # Saída:
-    # {'id': 1, 'xmin': 370.0, 'ymin': 456.0, 'xmax': 442.0, 'ymax': 130.0, 'conf': 0.9237046241760254}
-    # Ajuste do quadrante
-    # {'id': 1, 'xmin': 370.0 + tam_slice_width, 'ymin': 456.0,
-    #           'xmax': 442.0 tam_slice_width, 'ymax': 130.0 + tam_slice_height, 'conf': 0.9237046241760254}
-    bb_img.append({'id': 1, 'xmin': 370.0 + tam_slice_width, 'ymin': 456.0,
-                   'xmax': 442.0 + tam_slice_width, 'ymax': 130.0 + tam_slice_height, 'conf': 0.9237046241760254})
-
-    # Imgs do quadrante 2
-    bb_img.append(
-        {'id': 2, 'xmin': 888.0, 'ymin': 68.0 + tam_slice_height, 'xmax': 952.0, 'ymax': 240.0 + tam_slice_height,
-         'conf': 0.871227502822876})
-    bb_img.append(
-        {'id': 3, 'xmin': 922.0, 'ymin': 63.0 + tam_slice_height, 'xmax': 960.0, 'ymax': 228.0 + tam_slice_height,
-         'conf': 0.6695037484169006})
-
-    # Imgs do terceiro quadrante
-    # Não adicionamos o 5 (que já teve merge)
-    bb_img.append({'id': 4, 'xmin': 1.0 + tam_slice_width, 'ymin': 52.0 + tam_slice_height,
-                   'xmax': 79.0 + tam_slice_width, 'ymax': 230.0 + tam_slice_height, 'conf': 0.9308098554611206})
-    bb_img.append({'id': 6, 'xmin': 163.0 + tam_slice_width, 'ymin': 3.0 + tam_slice_height,
-                   'xmax': 243.0 + tam_slice_width, 'ymax': 189.0 + tam_slice_height, 'conf': 0.9022660851478577})
-    bb_img.append({'id': 7, 'xmin': 232.0 + tam_slice_width, 'ymin': 0.0 + tam_slice_height,
-                   'xmax': 311.0 + tam_slice_width, 'ymax': 209.0 + tam_slice_height, 'conf': 0.8999184966087341})
-    bb_img.append({'id': 8, 'xmin': 88.0 + tam_slice_width, 'ymin': 0.0 + tam_slice_height,
-                   'xmax': 169.0 + tam_slice_width, 'ymax': 230.0 + tam_slice_height, 'conf': 0.8105608224868774})
-
     return bb_img
 
 
