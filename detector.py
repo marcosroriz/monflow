@@ -42,7 +42,7 @@ class Detector:
 
         # Save class names and colors
         self.names = load_classes(names)
-        self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(names))]
+        self.colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(len(self.names))]
 
         # Show classified image?
         self.view_img = view_img
@@ -55,6 +55,7 @@ class Detector:
         self.iou_thres = iou_thres
 
         # Logger
+        self.id = 0
         self.logger = logging.getLogger("monflow.detector")
 
     def load_img(self, imgpath):
@@ -143,7 +144,17 @@ class Detector:
 
             # Process each prediction
             for *xyxy, conf, cls in det:
-                output[int(cls.item())].append([xyxy, conf])
+                self.id = self.id + 1
+
+                det_data = {
+                    'id': self.id,
+                    'xmin': xyxy[0].item(),
+                    'ymin': xyxy[1].item(),
+                    'xmax': xyxy[2].item(),
+                    'ymax': xyxy[3].item(),
+                    'conf': conf.item()
+                }
+                output[int(cls.item())].append(det_data)
                 if self.view_img:  # Add bbox to image
                     label = '%s %.2f' % (self.names[int(cls)], conf)
                     c = self.colors[int(cls)]
