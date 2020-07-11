@@ -63,6 +63,9 @@ tam_slice_height = 540
 #            {'id': 2, 'xmin': 371.0, 'ymin': 3.0, 'xmax': 442.0, 'ymax': 130.0, 'conf': 0.722}
 #     ]
 
+          
+
+
 # Bounding boxes (entrada)
 bb_slice0 = []  # Não detectou nada
 bb_slice1 = [{'id': 1, 'xmin': 371.0, 'ymin': 456.0, 'xmax': 431.0, 'ymax': 540.0, 'conf': 0.3491985499858856}]
@@ -74,6 +77,7 @@ bb_slice3 = [{'id': 4, 'xmin': 1.0, 'ymin': 52.0, 'xmax': 79.0, 'ymax': 230.0, '
              {'id': 7, 'xmin': 232.0, 'ymin': 0.0, 'xmax': 311.0, 'ymax': 209.0, 'conf': 0.8999184966087341},
              {'id': 8, 'xmin': 88.0, 'ymin': 0.0, 'xmax': 169.0, 'ymax': 230.0, 'conf': 0.8105608224868774}]
 
+
 # Visualizando os slices
 # Img Slice
 img_slice0 = os.path.join('data', 'samples', 'test1', '31930_0.jpg')
@@ -81,6 +85,7 @@ img_slice1 = os.path.join('data', 'samples', 'test1', '31930_1.jpg')
 img_slice2 = os.path.join('data', 'samples', 'test1', '31930_2.jpg')
 img_slice3 = os.path.join('data', 'samples', 'test1', '31930_3.jpg')
 
+'''
 imgs = [img_slice0, img_slice1, img_slice2, img_slice3]
 bbs = [bb_slice0, bb_slice1, bb_slice2, bb_slice3]
 for i in range(len(imgs)):
@@ -94,6 +99,7 @@ for i in range(len(imgs)):
     if cv2.waitKey(0) == ord('q'):  # q to quit
         raise StopIteration
 
+'''
 
 # Entrada da função
 # Tamanho da iamgem: tam_total_width, tam_total_height, tam_slice_width, tam_slice_height
@@ -106,9 +112,90 @@ for i in range(len(imgs)):
 # Neste caso deve-se fazer o merge do bb de id 1 do slice 1 com o bb de id 5 slice 3
 #
 
+def calc_dif(val1, val2):
+    valf = val1 - val2
+    if valf < 0:
+        return valf*-1
+    else:
+        return valf
+
+def merge_boxes(bb1, bb2, new_id):
+    xmin = 0
+    xmax = 0
+    ymin = 0
+    ymax = 0
+    conf = 0
+
+    if bb1['ymin'] < bb2['ymin']:
+        ymin = bb1['ymin']
+    else:
+        ymin = bb2['ymin']
+
+    if bb1['xmin'] < bb2['xmin']:
+        xmin = bb1['xmin']
+    else:
+        xmin = bb2['xmin']
+
+    if bb1['xmax'] > bb2['xmax']:
+        xmax = bb1['xmax']
+    else:
+        xmax = bb2['xmax']
+
+    if bb1['ymax'] > bb2['ymax']:
+        ymax = bb1['ymax']
+    else:
+        ymax = bb2['ymax']
+
+    if bb1['conf'] > bb2['conf']:
+        conf = bb1['conf']
+    else:
+        conf = bb2['conf'] 
+
+    return {'id': new_id, 'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax, 'conf': conf}
+
+
+def analyze_list_boxes(bb_slice1, bb_slice2, ori="vert"):
+    bb_img = []
+    erase_list = []
+    margin_h = 5
+    margin_v = 15
+    
+    if ori == "vert":
+        for bb1 in bb_slice1:
+            if bb1['ymax'] > (tam_slice_height-margin_h):
+                for bb2 in bb_slice2:
+                    if bb2['id'] in erase_list:
+                        continue
+                
+                    if bb2['ymin'] < margin_h:  
+                        if calc_dif(bb1['xmin'],bb2['xmin']) < margin_v and calc_dif(bb1['xmax'],bb2['xmax']) < margin_v:
+                            erase_list.append(bb1['id'])
+                            erase_list.append(bb2['id'])
+                            bb1_aux =  {'id': 0, 'xmin': bb1['xmin'] + tam_slice_width , 'ymin': bb1['ymin'] , 'xmax': bb1['xmax'] + tam_slice_width, 'ymax': bb1['ymax'], 'conf': bb1['conf']}
+                            bb2_aux =  {'id': 0, 'xmin': bb2['xmin'] + tam_slice_width , 'ymin': bb2['ymin'] + tam_slice_height, 'xmax': bb2['xmax'] + tam_slice_width, 'ymax': bb2['ymax'] + tam_slice_height, 'conf': bb2['conf']}
+                            bb_img.append(merge_boxes(bb1_aux,bb2_aux,bb1['id']))
+
+    else:
+        for bb1 in bb_slice1:
+            if bb1['xmax'] > (tam_slice_width-margin_h):
+                for bb2 in bb_slice2:
+                    if bb2['id'] in erase_list:
+                        continue
+
+                    if bb2['xmin'] < margin_h:  
+                        if calc_dif(bb1['ymin'],bb2['ymin']) < margin_v and calc_dif(bb1['ymax'],bb2['ymax']) < margin_v:
+                                erase_list.append(bb1['id'])
+                                erase_list.append(bb2['id'])
+                                bb1_aux =  {'id': 0, 'xmin': bb1['xmin'], 'ymin': bb1['ymin'] + tam_slice_height, 'xmax': bb1['xmax'], 'ymax': bb1['ymax'] + tam_slice_height, 'conf': bb1['conf']}
+                                bb2_aux =  {'id': 0, 'xmin': bb2['xmin'] + tam_slice_width , 'ymin': bb2['ymin'] + tam_slice_height, 'xmax': bb2['xmax'] + tam_slice_width, 'ymax': bb2['ymax'] + tam_slice_height, 'conf': bb2['conf']}
+                                bb_img.append(merge_boxes(bb1_aux,bb2_aux,bb1['id'])) 
+    
+    return bb_img, erase_list
+    
 def fix_bounding_box(tam_total_width, tam_total_height, tam_slice_width, tam_slice_height,
                      bb_slice0, bb_slice1, bb_slice2, bb_slice3):
     bb_img = []
+    erase_list = []
 
     # Img do quadrante 0
     # Nenhuma
@@ -125,28 +212,55 @@ def fix_bounding_box(tam_total_width, tam_total_height, tam_slice_width, tam_sli
     # Ajuste do quadrante
     # {'id': 1, 'xmin': 370.0 + tam_slice_width, 'ymin': 456.0,
     #           'xmax': 442.0 tam_slice_width, 'ymax': 130.0 + tam_slice_height, 'conf': 0.9237046241760254}
-    bb_img.append({'id': 1, 'xmin': 370.0 + tam_slice_width, 'ymin': 456.0,
-                   'xmax': 442.0 + tam_slice_width, 'ymax': 130.0 + tam_slice_height, 'conf': 0.9237046241760254})
 
-    # Imgs do quadrante 2
-    bb_img.append(
-        {'id': 2, 'xmin': 888.0, 'ymin': 68.0 + tam_slice_height, 'xmax': 952.0, 'ymax': 240.0 + tam_slice_height,
-         'conf': 0.871227502822876})
-    bb_img.append(
-        {'id': 3, 'xmin': 922.0, 'ymin': 63.0 + tam_slice_height, 'xmax': 960.0, 'ymax': 228.0 + tam_slice_height,
-         'conf': 0.6695037484169006})
+    
+    
+    #Merge entre Q0 e Q1
+    bb_img_aux, erase_list_aux = analyze_list_boxes(bb_slice0, bb_slice1, ori="hori")
+    bb_img += bb_img_aux
+    erase_list += erase_list_aux
 
-    # Imgs do terceiro quadrante
-    # Não adicionamos o 5 (que já teve merge)
-    bb_img.append({'id': 4, 'xmin': 1.0 + tam_slice_width, 'ymin': 52.0 + tam_slice_height,
-                   'xmax': 79.0 + tam_slice_width, 'ymax': 230.0 + tam_slice_height, 'conf': 0.9308098554611206})
-    bb_img.append({'id': 6, 'xmin': 163.0 + tam_slice_width, 'ymin': 3.0 + tam_slice_height,
-                   'xmax': 243.0 + tam_slice_width, 'ymax': 189.0 + tam_slice_height, 'conf': 0.9022660851478577})
-    bb_img.append({'id': 7, 'xmin': 232.0 + tam_slice_width, 'ymin': 0.0 + tam_slice_height,
-                   'xmax': 311.0 + tam_slice_width, 'ymax': 209.0 + tam_slice_height, 'conf': 0.8999184966087341})
-    bb_img.append({'id': 8, 'xmin': 88.0 + tam_slice_width, 'ymin': 0.0 + tam_slice_height,
-                   'xmax': 169.0 + tam_slice_width, 'ymax': 230.0 + tam_slice_height, 'conf': 0.8105608224868774})
+    #Merge entre Q0 e Q2
+    bb_img_aux, erase_list_aux = analyze_list_boxes(bb_slice0, bb_slice2, ori="vert")
+    bb_img += bb_img_aux
+    erase_list += erase_list_aux
+    
 
+    #Merge entre Q1 e Q3
+    bb_img_aux, erase_list_aux = analyze_list_boxes(bb_slice1, bb_slice3, ori="vert")
+    bb_img += bb_img_aux
+    erase_list += erase_list_aux
+
+    #Merge entre Q2 e Q3
+    bb_img_aux, erase_list_aux = analyze_list_boxes(bb_slice2, bb_slice3, ori="hori")
+    bb_img += bb_img_aux
+    erase_list += erase_list_aux
+
+    
+    for bb0 in bb_slice0:
+        if bb0['id'] in erase_list:
+            continue
+        bb_img.append(bb0)
+
+    for bb1 in bb_slice1:
+        if bb1['id'] in erase_list:
+            continue
+        bb1 =  {'id': bb1['id'], 'xmin': bb1['xmin'] + tam_slice_width , 'ymin': bb1['ymin'] , 'xmax': bb1['xmax'] + tam_slice_width, 'ymax': bb1['ymax'], 'conf': bb1['conf']}
+        bb_img.append(bb1)                       
+
+    for bb2 in bb_slice2:
+        if bb2['id'] in erase_list:
+            continue
+        bb2 =  {'id': bb2['id'], 'xmin': bb2['xmin'], 'ymin': bb2['ymin'] + tam_slice_height, 'xmax': bb2['xmax'], 'ymax': bb2['ymax'] + tam_slice_height, 'conf': bb2['conf']}
+        bb_img.append(bb2)
+
+    for bb3 in bb_slice3:
+        if bb3['id'] in erase_list:
+            continue
+        bb3 =  {'id': bb3['id'], 'xmin': bb3['xmin'] + tam_slice_width , 'ymin': bb3['ymin'] + tam_slice_height, 'xmax': bb3['xmax'] + tam_slice_width, 'ymax': bb3['ymax'] + tam_slice_height, 'conf': bb3['conf']}
+        bb_img.append(bb3)
+
+   
     return bb_img
 
 
