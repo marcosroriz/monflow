@@ -58,9 +58,7 @@ class Detector:
         self.id = 0
         self.logger = logging.getLogger("monflow.detector")
 
-    def load_img(self, imgpath):
-        rawimg = cv2.imread(imgpath)  # BGR in HxWxC
-
+    def preprocess_img(self, rawimg):
         # Padded resize
         img = letterbox(rawimg, new_shape=self.imgsz)[0]
 
@@ -72,9 +70,7 @@ class Detector:
 
         # Save Resize
         # cv2.imwrite(imgpath + '.letterbox.jpg', 255 * img.transpose((1, 2, 0))[:, :, ::-1])  # save letterbox image
-        return rawimg, img
 
-    def preprocess_img(self, img):
         img = torch.from_numpy(img).to(self.device)
         img = img.float()  # uint8 to fp16/32
         img /= 255.0  # 0 - 255 to 0.0 - 1.0
@@ -97,8 +93,8 @@ class Detector:
 
     def benchmark(self, imgpath):
         # Load and Preprocess IMG
-        rawimg, img = self.load_img(imgpath)
-        img = self.preprocess_img(img)
+        rawimg = cv2.imread(imgpath)  # BGR in HxWxC
+        img = self.preprocess_img(rawimg)
 
         # Predict
         pred = self.predict_img(img)
@@ -115,12 +111,17 @@ class Detector:
 
         return output
 
-    def detect(self, imgpath):
-        self.logger.info("Running detection on the following image: " + imgpath)
+    def detect(self, imgpath, load=True):
+        self.logger.info("Started detection")
 
-        # Load and Preprocess IMG
-        rawimg, img = self.load_img(imgpath)
-        img = self.preprocess_img(img)
+        # Load IMG
+        if load:
+            rawimg = cv2.imread(imgpath)  # BGR in HxWxC
+        else: # img already loaded
+            rawimg = imgpath
+
+        # Preprocess
+        img = self.preprocess_img(rawimg)
 
         # Predict
         pred = self.predict_img(img)
@@ -170,4 +171,3 @@ class Detector:
                 cv2.destroyAllWindows()
 
         return output
-
